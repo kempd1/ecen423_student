@@ -298,7 +298,7 @@ class repo_test_suite_423(repo_test_suite):
             self.print_warning(f"Github Submission commit file '{file_path}' not yet created - waiting")
         return False
 
-def build_test_suite_520(assignment_name, max_repo_files = 20, start_date = None):
+def build_test_suite_423(assignment_name, max_repo_files = 20, start_date = None):
     """ A helper function used by 'main' functions to build a test suite based on command line arguments.
         assignment_name: the name of the assignment used for taggin (e.g. 'lab01')
         max_repo_files: the maximum number of files allowed in the lab directory of the repository
@@ -336,7 +336,7 @@ def build_test_suite_520(assignment_name, max_repo_files = 20, start_date = None
         start_date = datetime.strptime(start_date, "%m/%d/%Y")
 
     # Build test suite
-    test_suite = test_suite_520(repo, assignment_name,
+    test_suite = repo_test_suite_423(repo, assignment_name,
         max_repo_files = max_repo_files, summary_log_filename = summary_log_filename, submit = args.submit,
         starter_branch = args.starterbranch, starter_check_date = start_date)
     test_suite.force = args.force
