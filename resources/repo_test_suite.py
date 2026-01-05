@@ -10,6 +10,7 @@ from datetime import datetime
 import sys
 import repo_test
 from repo_test import repo_test_result, result_type
+import time
 
 class TermColor:
     """ Terminal codes for printing in color """
@@ -294,6 +295,89 @@ class repo_test_suite():
         else: # there is not a current submission
             self.print_error("  No submission exists")
 
+    def submit_lab(self, lab_name, force = False):
+        ''' Submit a lab assignment. This involves tagging the current commit with the lab name and pushing it to the remote repository.
+        It does not check if the any actions associated with the commit/push are successful. '''
+        tag_commit = self.get_lab_tag_commit(lab_name)
+        if tag_commit is not None:
+            # - If there is a tag:
+            #    - Check to see if the tag code is different from the current commit. If not, exit saying it is already tagged and ready to submit
+            #    - If the code is different, ask for permission to retag and push the tag to the remote. (ask for permission first unless '--force' flag is given)
+            current_commit = self.repo.head.commit
+            commit_file_contents = self.get_commit_file_contents(tag_commit)
+            # commit_file_contents = repo_test.get_commit_file_contents(tag_commit, ".commitdate")
+            if current_commit.hexsha == tag_commit.hexsha:
+                print(f"Tag '{lab_name}' exists and is already up-to-date with the current commit.")
+                if commit_file_contents is not None:
+                    print(commit_file_contents)
+            else:
+                print(f"Tag '{lab_name}' exists and is out-of-date with the current commit.")
+                if commit_file_contents is not None:
+                    print(commit_file_contents)
+                if force:
+                    print("Forcing tag update")
+                else:
+                    print("Do you want to update the tag? Updating the tag will change the submission date.")
+                    response = input("Enter 'yes' to update the tag: ")
+                    if response.lower()[0] != 'y':
+                        print("Tag update cancelled")
+                        return False
+                # Tag is out of date
+                self.repo.delete_tag(lab_name)
+                new_tag = self.repo.create_tag(lab_name)
+                remote = self.repo.remote("origin")
+                remote.push(new_tag, force=True)
+        else:
+            # Tag doesn't exist
+            print(f"Tag '{lab_name}' does not exist in the repository. New tag will be created.")
+            new_tag = self.repo.create_tag(lab_name)
+            remote = self.repo.remote("origin")
+            remote.push(new_tag)
+        return True
+
+    def check_commit_date(self, lab_name, check_timeout = 30, check_sleep_time = 3):
+        ''' Iteratively check the commit date associated with a tag lab submission. 
+        This is called after committing the lab to the repository to see if the commit date is updated.'''
+        initial_time = time.time()
+        first_time = True
+        while True:
+            # Wait for a bit before checking again if it isn't the first iteration
+            if not first_time:
+                print(f"Waiting to check for commit file")
+                time.sleep(check_sleep_time)
+                first_time = False
+
+            # Fetch the remote tags
+            result = repo_test.get_remote_tags()
+            if not result:
+                return False
+            # See if the tag exists
+            tag = next((tag for tag in self.repo.tags if tag.name == lab_name), None)
+            if tag is None:
+                time.sleep(check_sleep_time)
+                continue
+            # Tag exists, fetch the remote to get all the files
+            repo_test.fetch_remote(self.repo)
+            # Get the commit associated with the tag
+            tag_commit = tag.commit
+            # See if the .commitdate file exists in root of repository
+            # Access the file from the commit
+            file_path = ".commitdate"
+            file_content = repo_test.get_commit_file_contents(tag_commit, file_path)
+            if file_content is not None:
+                self.print(f"Commit file created - submission complete")
+                self.print(file_content)
+                return True
+
+            # Check if the check_timeout has been reached
+            if time.time() - initial_time > check_timeout:
+                print(f"Timeout reached for checking tag '{lab_name}' commit date.")
+                return False
+            self.print_warning(f"Github Submission commit file '{file_path}' not yet created - waiting")
+            time.sleep(check_sleep_time)
+        return False
+
+
     def run_main(self):
         """ This function will perform the 'main' operation based on the
         run-time arguments. """
@@ -343,10 +427,14 @@ class repo_test_suite():
             self.add_repo_tests()
             result = self.run_tests()
             if result.result == result_type.SUCCESS:
-                # repo_test.perform_submission(self, force = self.run_time_args.force)
                 print("ready for submission")
-            else:
-                self.print_error("Submission not performed due to test errors.")
+                # repo_test.perform_submission(self, force = self.run_time_args.force)
+                self.submit_lab(self.test_name, force = self.run_time_args.force)
+                check_commit_date_status = self.check_commit_date(self.test_name)
+                if check_commit_date_status:
+                    self.print_test_status("Submission successful.")
+                else:
+                    self.print_error("Submission not performed due to test errors.")
         # Cleanup test
         self.test_cleanup()
 
