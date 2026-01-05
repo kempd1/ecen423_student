@@ -14,7 +14,7 @@ import repo_test_suite, repo_test
 def main():
     tester = repo_test_suite.build_test_suite("buttoncount", start_date="01-06-2026", 
         max_repo_files = 30)
-    tester.add_required_repo_files(["buttoncount_sim.png", "buttoncount.sv", ])
+    tester.add_required_repo_files(["buttoncount.sv", ])
     sim_test = tester.add_makefile_test("sim_buttoncount_tb", ["buttoncount.sv"],
                                             ["sim_buttoncount_tb.log"])
     sim_test.add_test(repo_test.file_regex_check(tester, "sim_buttoncount_tb.log",
