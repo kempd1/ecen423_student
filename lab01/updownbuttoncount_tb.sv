@@ -1,9 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////////
-// UpDownButtonCount_tb testbench
+// updownbuttoncount_tb testbench
 //////////////////////////////////////////////////////////////////////////////////
 `timescale 1 ns / 100 ps 
 
-module UpDownButtonCount_tb ();
+module updownbuttoncount_tb ();
 
     logic clk, btnc, btnu, btnd, btnl, btnr;
     logic [15:0] led;
@@ -12,14 +12,14 @@ module UpDownButtonCount_tb ();
     integer error = 0;
 
     // ButtonCount DUT
-    UpDownButtonCount dut (.*);
+    updownbuttoncount dut (.*);
 
     //////////////////////////////////////////////////////////////////////////////////
     // Clock Generator
     //////////////////////////////////////////////////////////////////////////////////
     always
     begin
-        clk <= 1'b0;
+        clk = '0;
         forever #5ns clk = ~clk;
     end
 
@@ -42,7 +42,7 @@ module UpDownButtonCount_tb ();
     task automatic inc_1();
         logic [15:0] cur_count = led;
         @(negedge clk);
-        $write("[%0t] Pressing BTNU", $time);
+        $write("[%0t] Pressing BTNU          ", $time);
         btnu = 1;
         repeat (4) @(negedge clk);
         btnu = 0;
@@ -54,7 +54,7 @@ module UpDownButtonCount_tb ();
         logic [15:0] cur_count = led;
         @(negedge clk);
         btnd = 1;
-        $write("[%0t] Pressing BTND", $time);
+        $write("[%0t] Pressing BTND          ", $time);
         repeat (4) @(negedge clk);
         btnd = 0;
         check_led(cur_count - 1);
