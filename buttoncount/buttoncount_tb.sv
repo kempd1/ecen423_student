@@ -1,19 +1,18 @@
 //////////////////////////////////////////////////////////////////////////////////
-// ButtonCount_tb testbench
+// buttoncount_tb testbench
 //////////////////////////////////////////////////////////////////////////////////
 
-module ButtonCount_tb ();
+module buttoncount_tb ();
 
     logic clk, btnc, btnu;
     logic [15:0] led;
     localparam NUM_INITIAL_TOGGLES = 11;
     localparam NUM_SECONDARY_TOGGLES = 17;
-    integer clk_cnts;
-    logic [15:0] led_d;
+    integer clk_cnts, error = 0;
+    logic [15:0] led_d, expected_led;
 
-
-    // ButtonCount DUT
-    ButtonCount dut (.clk(clk), .btnc(btnc), .btnu(btnu), .led(led));
+    // buttoncount DUT
+    buttoncount dut (.*);
 
     //////////////////////////////////////////////////////////////////////////////////
     // Clock Generator
@@ -28,9 +27,21 @@ module ButtonCount_tb ();
     always_ff@(posedge clk) begin
         led_d <= led;
         if (led !== led_d) begin
-            $display("[%0t] LED value: %0d", $time, led);
+            $write("[%0t] LED value: %0d", $time, led);
+            if (led !== expected_led && expected_led != 'x) begin
+                $display(" (Error, expected: %0d)", expected_led);
+                error = error + 1;
+            end else
+                $display(" (Ok)");
         end
     end
+
+    // Expected LED
+    always_ff@(posedge clk)
+        if (btnc)
+            expected_led <= 0;
+        else if (btnu)
+            expected_led <= expected_led + 1;
 
     // Task for presing buttons
     task press_buttons(integer num_presses);
@@ -49,7 +60,7 @@ module ButtonCount_tb ();
     // Main Test Bench Process
     //////////////////////////////////
     initial begin
-        $display("===== ButtonCount Testbench =====");
+        $display("===== buttoncount Testbench =====");
 
         // Simulate some time with no stimulus/reset
         #100ns
@@ -78,6 +89,10 @@ module ButtonCount_tb ();
         press_buttons(NUM_SECONDARY_TOGGLES);
 
         $display("[%0t] End of Simuation", $time);
+        if (error == 0)
+            $display("===== TEST PASSED =====");
+        else
+            $display("===== TEST FAILED with %0d errors =====", error);
 
         $finish;
     end

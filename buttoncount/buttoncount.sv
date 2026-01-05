@@ -6,12 +6,11 @@
 
 /***************************************************************************
 *
-* File: ButtonCount.sv
+* File: buttoncount.sv
 *
 * Author: Professor Mike Wirthlin
-* Class: ECEN 423, Winter Semester 2020
 *
-* Module: ButtonCount
+* Module: buttoncount
 *
 * Description:
 *    This module includes a state machine that will provide a one cycle
@@ -25,7 +24,7 @@
 *
 ****************************************************************************/
 
-module ButtonCount(
+module buttoncount(
         input logic clk,
         input logic btnc,
         input logic btnu,
@@ -47,7 +46,7 @@ module ButtonCount(
     synchronizer sync (.clk(clk), .rst(rst), .in(btnu), .out(btnu_sync));
 
     // Instance the OneShot module
-    OneShot os (.clk(clk), .rst(rst), .in(btnu_sync), .os(inc_count));
+    oneshot os (.clk(clk), .rst(rst), .in(btnu_sync), .os(inc_count));
 
     // 16-bit Counter. Increments once each time button is pressed.
     //
