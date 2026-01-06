@@ -59,6 +59,7 @@ class repo_test_suite():
                  starter_remote_name = None,
                  copy_build_files_dir = None,
                  copy_prefix_str = None,
+                 starter_check_date = None
                  ):
         # Reference to the Git repository (default is the current directory)
         self.repo = repo
@@ -92,6 +93,7 @@ class repo_test_suite():
         self.copy_prefix_str = copy_prefix_str # Prefice string added to copied files
         self.test_name = test_name
         self.result_dict = {}
+        self.starter_check_date = starter_check_date
         # Colors
         self.test_color = TermColor.YELLOW
         self.warning_color = TermColor.YELLOW
@@ -567,13 +569,15 @@ def build_test_suite(assignment_name, max_repo_files = 20, start_date = None):
         path = args.repo
     repo = git.Repo(path, search_parent_directories=True)
 
-    # # Create datetime object for starter code check if date is given
-    # if start_date is not None:
-    #     start_date = datetime.strptime(start_date, "%m/%d/%Y")
+    # Create datetime object for starter code check if date is given
+    if start_date is not None:
+        start_date = datetime.strptime(start_date, "%m/%d/%Y")
 
     # Build test suite
     test_suite = repo_test_suite(repo, args, assignment_name, max_repo_files = max_repo_files,
                                  copy_build_files_dir= args.copy,
-                                 copy_prefix_str= args.copy_file_str)
+                                 copy_prefix_str= args.copy_file_str,
+                                 starter_remote_name = "startercode",
+                                 starter_check_date = start_date,)
     return test_suite
 
