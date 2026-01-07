@@ -6,21 +6,21 @@
 
 /***************************************************************************
 *
-* File: OneShot.sv
+* File: oneshot.sv
 *
 * Author: Professor Mike Wirthlin
 * Class: ECEN 423
 *
-* Module: OneShot
+* Module: oneshot
 * Description:
-*    This module performs a "OneShot" function that generates a single clock
+*    This module performs a "oneshot" function that generates a single clock
 *    cycle pulse when the input transitions from zero to one. This function is
 *    useful for buttons and switches when you want to know when the signal first
 *    changes. This one shot functionality is implemented with a simple state machine.
 *
 ****************************************************************************/
 
-module OneShot(clk, rst, in, os);
+module oneshot(clk, rst, in, os);
 
     input wire logic clk;       // Global clock signal
     input wire logic rst;       // Global reset signal
