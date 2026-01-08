@@ -527,18 +527,23 @@ class files_tracked_test(repo_test):
 
     def perform_test(self):
         return_val = True
-        test_dir = self.repo_test_suite.working_path
-        tracked_dir_files = self.repo_test_suite.repo.git.ls_files(test_dir).splitlines()
-        # Get the filenames from the full path
-        tracked_dir_filenames = [pathlib.Path(file).name for file in tracked_dir_files]
-        #print(tracked_dir_filenames)
+        path_of_test_relative_to_repo = self.repo_test_suite.relative_repo_path
+        # Dictionary of all files tracked in each directory. Key is pathlib.Path object relative to repo root
+        repo_files_dict = {}
         for tracked_file in self.files_tracked_list:
-            #file_path = repo_test_suite.working_path / repo_file
-            #print("checking",not_tracked_file)
-            # Check to make sure this file is not tracked
-            if tracked_file not in tracked_dir_filenames:
-                self.repo_test_suite.print_error(f'File should be tracked in the repository: {tracked_file}')
-                #print(repo_test_suite.repo.untracked_files)
+            # Convert string of path to pathlib.Path object 
+            file_path = self.repo_test_suite.repo.working_tree_dir / self.repo_test_suite.relative_repo_path / tracked_file
+            file_path_resolve = file_path.resolve() # resolve to get rid of any ../ or ./ in path
+            file_path_relative_to_repo = file_path_resolve.relative_to(self.repo_test_suite.repo.working_tree_dir)
+            # print(file_path, file_path_resolve, file_path_relative_to_repo)
+            # Determine the path of this file relative to the repo
+            repo_dir_path = file_path.parent 
+            # If this is the first time seeing this directory, get the list of tracked files in it
+            if repo_dir_path not in repo_files_dict:
+                repo_files_dict[repo_dir_path] = self.repo_test_suite.repo.git.ls_files(repo_dir_path).splitlines()
+            # Is file in the list of tracked files for this directory?
+            if str(file_path_relative_to_repo) not in repo_files_dict[repo_dir_path]:
+                self.repo_test_suite.print_error(f'*** File should be tracked in the repository: {tracked_file}')
                 return_val = False
         if return_val:
             return self.success_result()
