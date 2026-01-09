@@ -169,6 +169,7 @@ module tb_regfile_top();
         end
 
 		$display("*** Successful simulation. Ended at %0t *** ", $time);
+        $display("===== TEST PASSED =====");
         $finish;
         
 	end  // end initial
