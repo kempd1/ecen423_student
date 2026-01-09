@@ -106,7 +106,7 @@ module tb_alu();
 
     // function to check if the outputs are defined
     function logic [15:0] results_defined();
-        if (^result === 1'bX)
+        if (^result === 1'bX || ^zero === 1'bX)
             results_defined = 0;
         else
             results_defined = 1;
@@ -243,6 +243,7 @@ module tb_alu();
         if (inputs_defined()) begin
             if (!results_defined()) begin
                 $display("[%0t] ****Error****: Invalid result (x's)", $time);
+                errors = errors + 1;
                 // $fatal;
             end
             else begin
